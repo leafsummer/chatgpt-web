@@ -8,7 +8,6 @@ import html2canvas from 'html2canvas'
 import { Message } from './components'
 import { useScroll } from './hooks/useScroll'
 import { useChat } from './hooks/useChat'
-import { useCopyCode } from './hooks/useCopyCode'
 import { useUsingContext } from './hooks/useUsingContext'
 import HeaderComponent from './components/Header/index.vue'
 import SysMsgPopUp from './layout/SysMsgPopUp.vue'
@@ -29,8 +28,6 @@ const ms = useMessage()
 const chatStore = useChatStore()
 const settingStore = useSettingStore()
 
-useCopyCode()
-
 const { isMobile } = useBasicLayout()
 const { addChat, updateChat, updateChatSome, getChatByUuidAndIndex } = useChat()
 const { scrollRef, scrollToBottom, scrollToBottomIfAtBottom } = useScroll()
@@ -39,7 +36,7 @@ const { usingContext, toggleUsingContext } = useUsingContext()
 const { uuid } = route.params as { uuid: string }
 
 const dataSources = computed(() => chatStore.getChatByUuid(+uuid))
-const conversationList = computed(() => dataSources.value.filter(item => (!item.inversion && !item.error)))
+const conversationList = computed(() => dataSources.value.filter(item => (!item.inversion && !!item.conversationOptions)))
 
 const prompt = ref<string>('')
 const loading = ref<boolean>(false)
@@ -96,7 +93,7 @@ async function onConversation() {
     options = { ...lastContext }
 
   // always add system message to options: either default or customized
-  options.systemMessage = settingStore.currentSystemMessage(+uuid)
+  const conversationConfig: Chat.ConversationConfig = settingStore.currentChatConfig(+uuid)
 
   addChat(
     +uuid,
@@ -118,6 +115,7 @@ async function onConversation() {
       await fetchChatAPIProcess<Chat.ConversationResponse>({
         prompt: message,
         options,
+        conversationConfig,
         signal: controller.signal,
         onDownloadProgress: ({ event }) => {
           const xhr = event.target
@@ -230,7 +228,7 @@ async function onRegenerate(index: number) {
     options = { ...requestOptions.options }
 
   // always add system message to options: either default or customized
-  options.systemMessage = settingStore.currentSystemMessage(+uuid)
+  const conversationConfig: Chat.ConversationConfig = settingStore.currentChatConfig(+uuid)
 
   loading.value = true
 
@@ -254,6 +252,7 @@ async function onRegenerate(index: number) {
       await fetchChatAPIProcess<Chat.ConversationResponse>({
         prompt: message,
         options,
+        conversationConfig,
         signal: controller.signal,
         onDownloadProgress: ({ event }) => {
           const xhr = event.target

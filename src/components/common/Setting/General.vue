@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import { NButton, NInput, NPopconfirm, NSelect, useMessage } from 'naive-ui'
 import type { Language, Theme } from '@/store/modules/app/helper'
 import { SvgIcon } from '@/components/common'
-import { useAppStore, useUserStore } from '@/store'
+import { useAppStore, useSettingStore, useUserStore } from '@/store'
 import type { UserInfo } from '@/store/modules/user/helper'
 import { getCurrentDate } from '@/utils/functions'
 import { useBasicLayout } from '@/hooks/useBasicLayout'
@@ -11,6 +11,7 @@ import { t } from '@/locales'
 
 const appStore = useAppStore()
 const userStore = useUserStore()
+const settingStore = useSettingStore()
 
 const { isMobile } = useBasicLayout()
 
@@ -57,6 +58,8 @@ const languageOptions: { label: string; key: Language; value: Language }[] = [
   { label: '简体中文', key: 'zh-CN', value: 'zh-CN' },
   { label: '繁體中文', key: 'zh-TW', value: 'zh-TW' },
   { label: 'English', key: 'en-US', value: 'en-US' },
+  { label: '한국어', key: 'ko-KR', value: 'ko-KR' },
+  { label: 'Русский язык', key: 'ru-RU', value: 'ru-RU' },
 ]
 
 function updateUserInfo(options: Partial<UserInfo>) {
@@ -110,6 +113,7 @@ function importData(event: Event): void {
 
 function clearData(): void {
   localStorage.removeItem('chatStorage')
+  settingStore.resetChatConfig()
   location.reload()
 }
 
